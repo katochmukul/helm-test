@@ -1,0 +1,32 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.name }}
+  labels:
+    {{- include "hello-app.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "hello-app.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "hello-app.selectorLabels" . | nindent 8 }}
+    spec:
+      volumes: 
+        - name: task-pv-storage
+          persistentVolumeClaim: 
+            claimName: task-pv-claim
+      containers:
+        - name: {{ .Values.name }}
+          image: {{ .Values.image }}
+          #envFrom:
+            #- configMapRef:
+                #name: {{ .Values.ConfigMapName }}
+          ports:
+            - containerPort: 9736
+          command: ['sh', '-c', "java -jar /app.jar"]
+          volumeMounts:
+            - mountPath: "/usr/share/sharevolume"
+              name: task-pv-storage
